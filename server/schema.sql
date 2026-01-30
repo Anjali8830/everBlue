@@ -1,0 +1,26 @@
+CREATE TABLE IF NOT EXISTS users (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  email VARCHAR(100) UNIQUE NOT NULL,
+  password_hash VARCHAR(255) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS transactions (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER REFERENCES users(id),
+  description VARCHAR(255) NOT NULL,
+  amount NUMERIC(10, 2) NOT NULL,
+  category VARCHAR(50) NOT NULL,
+  date DATE DEFAULT CURRENT_DATE,
+  type VARCHAR(20) CHECK (type IN ('income', 'expense')),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS budgets (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER REFERENCES users(id),
+  category VARCHAR(50) NOT NULL,
+  limit_amount NUMERIC(10, 2) NOT NULL,
+  month VARCHAR(20) NOT NULL
+);
