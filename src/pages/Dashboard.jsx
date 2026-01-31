@@ -85,85 +85,90 @@ const Dashboard = () => {
     const [dailySpend, setDailySpend] = useState(0);
     const [totals, setTotals] = useState({ income: 0, expense: 0, balance: 0 });
 
+    const fetchData = async () => {
+        // Use the user from context
+        if (!user?.email) return;
+
+        try {
+            // Fetch User Data (Budget) Freshly
+            const userRes = await fetch(`${API_URL}/api/auth/user?email=${user.email}`);
+            if (userRes.ok) {
+                const userData = await userRes.json();
+                // Only update if budget changed to avoid infinite loop
+                if (userData.monthlyBudget !== user.monthlyBudget) {
+                    updateUser({ monthlyBudget: userData.monthlyBudget });
+                }
+            }
+
+            // Fetch Transactions
+            const res = await fetch(`${API_URL}/api/transactions?email=${user.email}`);
+            const transactions = await res.json();
+
+            if (Array.isArray(transactions)) {
+                const now = new Date();
+                const currentMonth = now.getMonth();
+                const currentYear = now.getFullYear();
+
+                // Calculate Totals for Current Month
+                const income = transactions
+                    .filter(t => {
+                        const d = new Date(t.date);
+                        return t.type === 'income' && d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+                    })
+                    .reduce((acc, curr) => acc + Number(curr.amount), 0);
+
+                const expense = transactions
+                    .filter(t => {
+                        const d = new Date(t.date);
+                        return t.type === 'expense' && d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+                    })
+                    .reduce((acc, curr) => acc + Number(curr.amount), 0);
+
+                setTotals({
+                    income,
+                    expense,
+                    balance: income - expense
+                });
+
+                // Daily Spend (Expenses today)
+                const todayStr = new Date().toISOString().split('T')[0];
+                const todaySum = transactions
+                    .filter(t => t.type === 'expense' && t.date.startsWith(todayStr))
+                    .reduce((acc, curr) => acc + Number(curr.amount), 0);
+                setDailySpend(todaySum);
+
+                // Weekly Trend (Last 7 days)
+                const last7Days = [...Array(7)].map((_, i) => {
+                    const d = new Date();
+                    d.setDate(d.getDate() - (6 - i));
+                    return d.toISOString().split('T')[0];
+                });
+
+                const chartData = last7Days.map(dateStr => {
+                    const daySum = transactions
+                        .filter(t => t.type === 'expense' && t.date.startsWith(dateStr))
+                        .reduce((acc, curr) => acc + Number(curr.amount), 0);
+                    return {
+                        day: new Date(dateStr).toLocaleDateString('en-US', { weekday: 'short' }),
+                        amount: daySum
+                    };
+                });
+                setSpendingData(chartData);
+            }
+        } catch (e) { console.error(e); }
+    };
+
     React.useEffect(() => {
-        const fetchData = async () => {
-            // Use the user from context
-            if (!user?.email) return;
-
-            try {
-                // Fetch User Data (Budget) Freshly
-                const userRes = await fetch(`http://localhost:5000/api/auth/user?email=${user.email}`);
-                if (userRes.ok) {
-                    const userData = await userRes.json();
-                    // Only update if budget changed to avoid infinite loop
-                    if (userData.monthlyBudget !== user.monthlyBudget) {
-                        updateUser({ monthlyBudget: userData.monthlyBudget });
-                    }
-                }
-
-                // Fetch Transactions
-                const res = await fetch(`${API_URL}/api/transactions?email=${user.email}`);
-                const transactions = await res.json();
-
-                if (Array.isArray(transactions)) {
-                    const now = new Date();
-                    const currentMonth = now.getMonth();
-                    const currentYear = now.getFullYear();
-
-                    // Calculate Totals for Current Month
-                    const income = transactions
-                        .filter(t => {
-                            const d = new Date(t.date);
-                            return t.type === 'income' && d.getMonth() === currentMonth && d.getFullYear() === currentYear;
-                        })
-                        .reduce((acc, curr) => acc + Number(curr.amount), 0);
-
-                    const expense = transactions
-                        .filter(t => {
-                            const d = new Date(t.date);
-                            return t.type === 'expense' && d.getMonth() === currentMonth && d.getFullYear() === currentYear;
-                        })
-                        .reduce((acc, curr) => acc + Number(curr.amount), 0);
-
-                    setTotals({
-                        income,
-                        expense,
-                        balance: income - expense
-                    });
-
-                    // Daily Spend (Expenses today)
-                    const todayStr = new Date().toISOString().split('T')[0];
-                    const todaySum = transactions
-                        .filter(t => t.type === 'expense' && t.date.startsWith(todayStr))
-                        .reduce((acc, curr) => acc + Number(curr.amount), 0);
-                    setDailySpend(todaySum);
-
-                    // Weekly Trend (Last 7 days)
-                    const last7Days = [...Array(7)].map((_, i) => {
-                        const d = new Date();
-                        d.setDate(d.getDate() - (6 - i));
-                        return d.toISOString().split('T')[0];
-                    });
-
-                    const chartData = last7Days.map(dateStr => {
-                        const daySum = transactions
-                            .filter(t => t.type === 'expense' && t.date.startsWith(dateStr))
-                            .reduce((acc, curr) => acc + Number(curr.amount), 0);
-                        return {
-                            day: new Date(dateStr).toLocaleDateString('en-US', { weekday: 'short' }),
-                            amount: daySum
-                        };
-                    });
-                    setSpendingData(chartData);
-                }
-            } catch (e) { console.error(e); }
-        };
         fetchData();
     }, [user?.email]); // API Loop Fix: Depend only on email, not entire user object
 
     return (
         <Box>
-            <AddTransactionDialog open={openTransaction} onClose={() => setOpenTransaction(false)} />
+            <AddTransactionDialog
+                open={openTransaction}
+                onClose={() => setOpenTransaction(false)}
+                onTransactionAdded={fetchData}
+            />
             <SetBudgetDialog open={openBudget} onClose={() => setOpenBudget(false)} />
 
             {/* Welcome Section */}
@@ -187,15 +192,17 @@ const Dashboard = () => {
                         color="primary"
                     />
                 </Grid>
-                <Grid item xs={12} sm={6} md={4}>
-                    <SummaryCard
-                        title="Remaining Budget"
-                        amount={`${currency.symbol}${(user?.monthlyBudget || 0) - (totals?.expense || 0)}`}
-                        subtitle="Left from monthly limit"
-                        trend={(user?.monthlyBudget || 0) - (totals?.expense || 0) >= 0 ? "Safe" : "Over"}
-                        color={(user?.monthlyBudget || 0) - (totals?.expense || 0) >= 0 ? "success" : "error"}
-                    />
-                </Grid>
+                {user?.monthlyBudget > 0 && (
+                    <Grid item xs={12} sm={6} md={4}>
+                        <SummaryCard
+                            title="Remaining Budget"
+                            amount={`${currency.symbol}${(user?.monthlyBudget || 0) - (totals?.expense || 0)}`}
+                            subtitle="Left from monthly limit"
+                            trend={(user?.monthlyBudget || 0) - (totals?.expense || 0) >= 0 ? "Safe" : "Over"}
+                            color={(user?.monthlyBudget || 0) - (totals?.expense || 0) >= 0 ? "success" : "error"}
+                        />
+                    </Grid>
+                )}
                 <Grid item xs={12} sm={6} md={4}>
                     <SummaryCard
                         title="Month Spending"

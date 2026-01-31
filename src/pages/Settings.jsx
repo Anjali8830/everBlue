@@ -82,7 +82,7 @@ const Settings = () => {
                 </List>
             </Paper>
 
-            <Button variant="outlined" color="error">Sign Out</Button>
+
         </Box>
     );
 };

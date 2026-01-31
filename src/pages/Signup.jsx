@@ -16,6 +16,91 @@ const Signup = () => {
     const { login } = useAuth();
     const [showPassword, setShowPassword] = useState(false);
 
+    // Form State
+    const [formData, setFormData] = useState({
+        name: '',
+        email: '',
+        password: '',
+        agreed: false
+    });
+
+    const [passwordStrength, setPasswordStrength] = useState(0);
+
+    const checkStrength = (pass) => {
+        let strength = 0;
+        if (pass.length > 5) strength += 20;
+        if (pass.length > 8) strength += 20;
+        if (/[A-Z]/.test(pass)) strength += 20;
+        if (/[0-9]/.test(pass)) strength += 20;
+        if (/[^A-Za-z0-9]/.test(pass)) strength += 20;
+        return strength;
+    };
+
+    const handleChange = (e) => {
+        const { name, value, checked } = e.target;
+        const val = name === 'agreed' ? checked : value;
+        setFormData(prev => ({ ...prev, [name]: val }));
+
+        if (name === 'password') {
+            setPasswordStrength(checkStrength(val));
+        }
+    };
+
+    const getStrengthLabel = () => {
+        if (passwordStrength <= 20) return { label: 'Weak', color: 'error.main', progressColor: 'error' };
+        if (passwordStrength <= 60) return { label: 'Medium', color: 'warning.main', progressColor: 'warning' };
+        return { label: 'Strong', color: 'success.main', progressColor: 'success' };
+    };
+
+    const handleSignup = async () => {
+        const { name, email, password, agreed } = formData;
+
+        // Basic Validation
+        if (!name || !email || !password) {
+            alert('Please fill in all fields');
+            return;
+        }
+
+        if (!agreed) {
+            alert('You must agree to the Terms and Privacy Policy');
+            return;
+        }
+
+        // Strict Email Regex
+        // Enforces: chars@chars.domain (at least 2 chars for TLD), no typical invalid chars
+        const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        if (!emailRegex.test(email)) {
+            alert('Please enter a valid email address');
+            return;
+        }
+
+        if (password.length < 6) {
+            alert('Password must be at least 6 characters long');
+            return;
+        }
+
+        try {
+            const res = await fetch(`${API_URL}/api/auth/register`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, email, password })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                console.log('Signup result:', data);
+                login(data); // Auto login
+                navigate('/');
+            } else {
+                alert(data.msg || 'Signup failed');
+            }
+        } catch (e) {
+            console.error(e);
+            alert('Server error. Check console.');
+        }
+    };
+
+    const strengthInfo = getStrengthLabel();
+
     return (
         <Box
             sx={{
@@ -59,6 +144,8 @@ const Signup = () => {
                                 id="name"
                                 label="Full Name"
                                 name="name"
+                                value={formData.name}
+                                onChange={handleChange}
                                 autoFocus
                                 InputProps={{
                                     startAdornment: (
@@ -75,6 +162,8 @@ const Signup = () => {
                                 id="email"
                                 label="Email Address"
                                 name="email"
+                                value={formData.email}
+                                onChange={handleChange}
                                 autoComplete="email"
                                 InputProps={{
                                     startAdornment: (
@@ -90,6 +179,8 @@ const Signup = () => {
                                 fullWidth
                                 name="password"
                                 label="Password"
+                                value={formData.password}
+                                onChange={handleChange}
                                 type={showPassword ? 'text' : 'password'}
                                 id="password"
                                 InputProps={{
@@ -107,16 +198,32 @@ const Signup = () => {
                             />
 
                             {/* Password Strength Indicator */}
-                            <Box sx={{ mt: 1, mb: 2 }}>
-                                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-                                    <Typography variant="caption" color="text.secondary">Password Strength</Typography>
-                                    <Typography variant="caption" color="success.main">Strong</Typography>
+                            {formData.password && (
+                                <Box sx={{ mt: 1, mb: 2 }}>
+                                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                                        <Typography variant="caption" color="text.secondary">Password Strength</Typography>
+                                        <Typography variant="caption" sx={{ color: strengthInfo.color, fontWeight: 600 }}>
+                                            {strengthInfo.label}
+                                        </Typography>
+                                    </Box>
+                                    <LinearProgress
+                                        variant="determinate"
+                                        value={passwordStrength}
+                                        color={strengthInfo.progressColor}
+                                        sx={{ height: 6, borderRadius: 3 }}
+                                    />
                                 </Box>
-                                <LinearProgress variant="determinate" value={85} color="success" sx={{ height: 6, borderRadius: 3 }} />
-                            </Box>
+                            )}
 
                             <FormControlLabel
-                                control={<Checkbox value="allowExtraEmails" color="primary" />}
+                                control={
+                                    <Checkbox
+                                        name="agreed"
+                                        checked={formData.agreed}
+                                        onChange={handleChange}
+                                        color="primary"
+                                    />
+                                }
                                 label={<Typography variant="body2">I agree to the <Link href="#">Terms</Link> and <Link href="#">Privacy Policy</Link></Typography>}
                             />
 
@@ -124,49 +231,7 @@ const Signup = () => {
                                 fullWidth
                                 variant="contained"
                                 size="large"
-                                onClick={async () => {
-                                    // Get values from form inputs by ID since we aren't using controlled state for everything for simplicity
-                                    // In a real app, we'd binding these to state variables
-                                    const name = document.getElementById('name').value;
-                                    const email = document.getElementById('email').value;
-                                    const password = document.getElementById('password').value;
-
-                                    // Basic Client-side Validation
-                                    if (!name || !email || !password) {
-                                        alert('Please fill in all fields');
-                                        return;
-                                    }
-
-                                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                                    if (!emailRegex.test(email)) {
-                                        alert('Please enter a valid email address');
-                                        return;
-                                    }
-
-                                    if (password.length < 6) {
-                                        alert('Password must be at least 6 characters long');
-                                        return;
-                                    }
-
-                                    try {
-                                        const res = await fetch(`${API_URL}/api/auth/register`, {
-                                            method: 'POST',
-                                            headers: { 'Content-Type': 'application/json' },
-                                            body: JSON.stringify({ name, email, password })
-                                        });
-                                        const data = await res.json();
-                                        if (res.ok) {
-                                            console.log('Signup result:', data);
-                                            login(data); // Auto login
-                                            navigate('/');
-                                        } else {
-                                            alert(data.msg || 'Signup failed');
-                                        }
-                                    } catch (e) {
-                                        console.error(e);
-                                        alert('Server error. Check console.');
-                                    }
-                                }}
+                                onClick={handleSignup}
                                 sx={{ mt: 3, mb: 2, py: 1.5, fontSize: '1rem' }}
                             >
                                 Create Account

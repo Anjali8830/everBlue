@@ -18,14 +18,23 @@ const Login = () => {
     const { login } = useAuth();
     const [showPassword, setShowPassword] = useState(false);
 
+    // Form State
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+
     const from = location.state?.from?.pathname || '/';
 
     const handleLogin = async () => {
+        if (!email || !password) {
+            alert('Please enter both email and password');
+            return;
+        }
+
         try {
             const response = await fetch(`${API_URL}/api/auth/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: 'anjali@example.com', password: 'password123' }) // Hardcoded for demo simplicity
+                body: JSON.stringify({ email, password })
             });
 
             const data = await response.json();
@@ -38,10 +47,8 @@ const Login = () => {
                 alert(data.msg || 'Login failed');
             }
         } catch (err) {
-            console.log('Login error (fallback):', err);
-            // Fallback for demo
-            login({ name: 'Anjali', email: 'anjali@example.com' });
-            navigate(from, { replace: true });
+            console.log('Login error:', err);
+            alert('Login failed due to server/network error.');
         }
     };
 
@@ -88,6 +95,8 @@ const Login = () => {
                                 id="email"
                                 label="Email Address"
                                 name="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
                                 autoComplete="email"
                                 autoFocus
                                 InputProps={{
@@ -107,6 +116,8 @@ const Login = () => {
                                 label="Password"
                                 type={showPassword ? 'text' : 'password'}
                                 id="password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
                                 autoComplete="current-password"
                                 InputProps={{
                                     startAdornment: (
@@ -139,6 +150,7 @@ const Login = () => {
                                 variant="contained"
                                 size="large"
                                 onClick={handleLogin}
+                                disabled={!email || !password}
                                 sx={{ mt: 3, mb: 2, py: 1.5, fontSize: '1rem' }}
                             >
                                 Sign In

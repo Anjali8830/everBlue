@@ -1,9 +1,13 @@
-const express = require('express');
-const router = express.Router();
-const nodemailer = require('nodemailer');
-const Transaction = require('../models/Transaction');
-const User = require('../models/User');
+import express from 'express';
+import nodemailer from 'nodemailer';
+import User from '../models/User.js';
+import Transaction from '../models/Transaction.js';
 
+const router = express.Router();
+
+// @route   POST api/reports/send-report
+// @desc    Send monthly report to user email
+// @access  Public (should be protected in prod)
 router.post('/send-report', async (req, res) => {
     const { email } = req.body;
 
@@ -60,9 +64,6 @@ router.post('/send-report', async (req, res) => {
         `;
 
         // 4. Send Email
-        // Note: Using Environment Variables is best practice.
-        // If not set, this will fail or we can use a test account.
-
         const transporter = nodemailer.createTransport({
             service: 'gmail', // easy setup for testing
             auth: {
@@ -88,4 +89,4 @@ router.post('/send-report', async (req, res) => {
     }
 });
 
-module.exports = router;
+export default router;

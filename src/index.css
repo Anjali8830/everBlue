@@ -20,14 +20,42 @@ code {
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f1f1; 
+  background: #f1f1f1;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #c1c1c1; 
+  background: #c1c1c1;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8; 
+  background: #a8a8a8;
+}
+
+@media print {
+
+  /* Hide Sidebar and Buttons */
+  nav,
+  .MuiDrawer-root,
+  .no-print,
+  button {
+    display: none !important;
+  }
+
+  /* Reset Layout */
+  body,
+  #root,
+  main {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    background: white;
+  }
+
+  /* Ensure text is black for printing */
+  * {
+    color: black !important;
+    box-shadow: none !important;
+    background: transparent !important;
+  }
 }

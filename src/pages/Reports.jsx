@@ -7,9 +7,9 @@ const Reports = () => {
         <Box>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
                 <Typography variant="h4" fontWeight="bold">Monthly Reports</Typography>
-                <Box>
-                    <Button startIcon={<Print />} sx={{ mr: 1 }}>Print</Button>
-                    <Button variant="contained" startIcon={<Download />}>Download PDF</Button>
+                <Box className="no-print">
+                    <Button startIcon={<Print />} sx={{ mr: 1 }} onClick={() => window.print()}>Print</Button>
+                    <Button variant="contained" startIcon={<Download />} onClick={() => window.print()}>Download PDF</Button>
                 </Box>
             </Box>
 
