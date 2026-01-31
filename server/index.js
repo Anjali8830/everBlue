@@ -15,7 +15,10 @@ const PORT = process.env.PORT || 5000;
 app.use(cors({
     origin: [
         "https://www.anjali.net.in",
-        "https://d3sm9zpe96oz73.cloudfront.net"
+        "https://d3sm9zpe96oz73.cloudfront.net",
+        "http://localhost:5173",
+        "http://localhost:5174",
+        "http://localhost:3000"
     ],
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true

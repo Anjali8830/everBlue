@@ -26,8 +26,17 @@ export const CurrencyProvider = ({ children }) => {
         if (selected) setCurrency(selected);
     };
 
+    const formatAmount = (amount) => {
+        return new Intl.NumberFormat(currency.code === 'INR' ? 'en-IN' : 'en-US', {
+            style: 'currency',
+            currency: currency.code,
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+        }).format(amount);
+    };
+
     return (
-        <CurrencyContext.Provider value={{ currency, changeCurrency, currencies }}>
+        <CurrencyContext.Provider value={{ currency, changeCurrency, currencies, formatAmount }}>
             {children}
         </CurrencyContext.Provider>
     );

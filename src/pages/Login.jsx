@@ -22,11 +22,29 @@ const Login = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
 
+    // Error State
+    const [emailError, setEmailError] = useState('');
+    const [passwordError, setPasswordError] = useState('');
+    const [loginError, setLoginError] = useState('');
+
     const from = location.state?.from?.pathname || '/';
 
+    const validateEmail = (val) => {
+        if (!val) return 'Email is required';
+        if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(val)) {
+            return 'Enter a valid email address';
+        }
+        return '';
+    };
+
     const handleLogin = async () => {
-        if (!email || !password) {
-            alert('Please enter both email and password');
+        // Reset errors
+        const eErr = validateEmail(email);
+        const pErr = !password ? 'Password is required' : '';
+
+        if (eErr || pErr) {
+            setEmailError(eErr);
+            setPasswordError(pErr);
             return;
         }
 
@@ -44,11 +62,11 @@ const Login = () => {
                 login(data.user);
                 navigate(from, { replace: true });
             } else {
-                alert(data.msg || 'Login failed');
+                setLoginError(data.msg || 'Login failed');
             }
         } catch (err) {
             console.log('Login error:', err);
-            alert('Login failed due to server/network error.');
+            setLoginError('Login failed due to server/network error.');
         }
     };
 
@@ -88,6 +106,12 @@ const Login = () => {
                 <Card sx={{ p: 2 }}>
                     <CardContent>
                         <Box component="form" noValidate sx={{ mt: 1 }}>
+                            {loginError && (
+                                <Typography color="error" variant="body2" align="center" sx={{ mb: 2 }}>
+                                    {loginError}
+                                </Typography>
+                            )}
+
                             <TextField
                                 margin="normal"
                                 required
@@ -96,7 +120,13 @@ const Login = () => {
                                 label="Email Address"
                                 name="email"
                                 value={email}
-                                onChange={(e) => setEmail(e.target.value)}
+                                onChange={(e) => {
+                                    setEmail(e.target.value);
+                                    if (emailError) setEmailError(validateEmail(e.target.value) ? emailError : '');
+                                }}
+                                onBlur={() => setEmailError(validateEmail(email))}
+                                error={!!emailError}
+                                helperText={emailError}
                                 autoComplete="email"
                                 autoFocus
                                 InputProps={{
@@ -117,7 +147,12 @@ const Login = () => {
                                 type={showPassword ? 'text' : 'password'}
                                 id="password"
                                 value={password}
-                                onChange={(e) => setPassword(e.target.value)}
+                                onChange={(e) => {
+                                    setPassword(e.target.value);
+                                    if (passwordError && e.target.value) setPasswordError('');
+                                }}
+                                error={!!passwordError}
+                                helperText={passwordError}
                                 autoComplete="current-password"
                                 InputProps={{
                                     startAdornment: (
@@ -150,7 +185,6 @@ const Login = () => {
                                 variant="contained"
                                 size="large"
                                 onClick={handleLogin}
-                                disabled={!email || !password}
                                 sx={{ mt: 3, mb: 2, py: 1.5, fontSize: '1rem' }}
                             >
                                 Sign In
@@ -164,13 +198,6 @@ const Login = () => {
                                     </Link>
                                 </Typography>
                             </Box>
-                        </Box>
-
-                        <Box sx={{ mt: 4, textAlign: 'center' }}>
-                            <Typography variant="caption" color="text.secondary" display="block">
-                                <LockOutlined sx={{ fontSize: 12, verticalAlign: 'middle', mr: 0.5 }} />
-                                Bank-grade security. 256-bit encryption.
-                            </Typography>
                         </Box>
                     </CardContent>
                 </Card>

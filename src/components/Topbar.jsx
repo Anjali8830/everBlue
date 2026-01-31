@@ -2,10 +2,24 @@ import React from 'react';
 import { AppBar, Toolbar, IconButton, Typography, Box, Badge, Avatar, useTheme } from '@mui/material';
 import { Menu as MenuIcon, NotificationsOutlined, Search as SearchIcon, HelpOutline } from '@mui/icons-material';
 import { useAuth } from '../context/AuthContext';
+import { useLocation } from 'react-router-dom';
 
 const Topbar = ({ onMenuClick }) => {
     const theme = useTheme();
     const { user } = useAuth();
+    const location = useLocation();
+    const isDark = theme.palette.mode === 'dark';
+
+    const getTitle = () => {
+        const path = location.pathname;
+        if (path === '/') return 'Overview';
+        if (path === '/transactions') return 'Transactions';
+        if (path === '/budget') return 'Budget';
+        if (path === '/reports') return 'Reports';
+        if (path === '/settings') return 'Settings';
+        if (path === '/coach') return 'AI Coach';
+        return 'Overview';
+    };
 
     return (
         <AppBar
@@ -13,8 +27,8 @@ const Topbar = ({ onMenuClick }) => {
             color="inherit"
             elevation={0}
             sx={{
-                borderBottom: '1px solid rgba(0,0,0,0.05)',
-                bgcolor: 'rgba(255,255,255,0.8)',
+                borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)'}`,
+                bgcolor: isDark ? 'rgba(18, 18, 18, 0.8)' : 'rgba(255,255,255,0.8)',
                 backdropFilter: 'blur(8px)'
             }}
         >
@@ -31,7 +45,7 @@ const Topbar = ({ onMenuClick }) => {
                     </IconButton>
 
                     <Typography variant="h6" noWrap component="div" sx={{ display: { xs: 'none', sm: 'block' }, fontWeight: 600, color: 'text.primary' }}>
-                        Overview
+                        {getTitle()}
                     </Typography>
                 </Box>
 

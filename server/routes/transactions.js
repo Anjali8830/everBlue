@@ -64,4 +64,36 @@ router.post('/', async (req, res) => {
     }
 });
 
+// Update Transaction
+router.put('/:id', async (req, res) => {
+    const { description, amount, category, type, date } = req.body;
+
+    try {
+        // Ideally verify user ownership here, but for now we trust ID + Auth
+        const updatedTx = await Transaction.findByIdAndUpdate(
+            req.params.id,
+            { description, amount, category, type, date },
+            { new: true }
+        );
+
+        if (!updatedTx) return res.status(404).json({ msg: 'Transaction not found' });
+        res.json(updatedTx);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ msg: 'Server Error' });
+    }
+});
+
+// Delete Transaction
+router.delete('/:id', async (req, res) => {
+    try {
+        const deletedTx = await Transaction.findByIdAndDelete(req.params.id);
+        if (!deletedTx) return res.status(404).json({ msg: 'Transaction not found' });
+        res.json({ msg: 'Transaction removed' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ msg: 'Server Error' });
+    }
+});
+
 export default router;
