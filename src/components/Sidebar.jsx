@@ -20,6 +20,7 @@ const menuItems = [
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
     { text: 'Transactions', icon: <ReceiptIcon />, path: '/transactions' },
     { text: 'Budget & Insights', icon: <PieChartIcon />, path: '/budget' },
+    { text: 'AI Coach', icon: <PsychologyIcon />, path: '/coach' },
     { text: 'Reports', icon: <ReportIcon />, path: '/reports' },
     { text: 'Settings', icon: <SettingsIcon />, path: '/settings' },
 ];
