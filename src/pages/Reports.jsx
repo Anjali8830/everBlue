@@ -4,6 +4,7 @@ import {
     TableContainer, TableHead, TableRow, LinearProgress, Alert
 } from '@mui/material';
 import { Download, Print } from '@mui/icons-material';
+import html2pdf from 'html2pdf.js';
 import { useAuth } from '../context/AuthContext';
 import { useCurrency } from '../context/CurrencyContext';
 import API_URL from '../config';
@@ -60,16 +61,28 @@ const Reports = () => {
         setCategoryStats(sorted);
     };
 
+    const downloadPDF = () => {
+        const element = document.getElementById('report-content');
+        const opt = {
+            margin: 10,
+            filename: `everblue-report-${new Date().toISOString().split('T')[0]}.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2 },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+        html2pdf().set(opt).from(element).save();
+    };
+
     if (loading) return <LinearProgress />;
     if (error) return <Alert severity="error">{error}</Alert>;
 
     return (
-        <Box>
+        <Box id="report-content">
             <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
                 <Typography variant="h4" fontWeight="bold">Monthly Reports</Typography>
                 <Box className="no-print">
                     <Button startIcon={<Print />} sx={{ mr: 1 }} onClick={() => window.print()}>Print</Button>
-                    <Button variant="contained" startIcon={<Download />} onClick={() => window.print()}>Download PDF</Button>
+                    <Button variant="contained" startIcon={<Download />} onClick={downloadPDF}>Download PDF</Button>
                 </Box>
             </Box>
 

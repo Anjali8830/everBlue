@@ -17,8 +17,11 @@ import Signup from './pages/Signup';
 
 import Transactions from './pages/Transactions';
 import Coach from './pages/Coach';
+import Bills from './pages/Bills';
 
 import Budget from './pages/Budget';
+import Investments from './pages/Investments';
+import Goals from './pages/Goals';
 import Reports from './pages/Reports';
 import Settings from './pages/Settings';
 
@@ -39,6 +42,9 @@ function App() {
           <Route index element={<Dashboard />} />
           <Route path="transactions" element={<Transactions />} />
           <Route path="budget" element={<Budget />} />
+          <Route path="bills" element={<Bills />} />
+          <Route path="investments" element={<Investments />} />
+          <Route path="goals" element={<Goals />} />
           <Route path="coach" element={<Coach />} />
           <Route path="reports" element={<Reports />} />
           <Route path="settings" element={<Settings />} />

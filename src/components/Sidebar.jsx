@@ -10,7 +10,10 @@ import {
     Psychology as PsychologyIcon,
     Settings as SettingsIcon,
     Description as ReportIcon,
-    Logout // Import Logout
+    ReceiptLong as BillsIcon,
+    TrendingUp as InvestmentsIcon,
+    Flag as GoalsIcon,
+    Logout
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -20,6 +23,9 @@ const menuItems = [
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
     { text: 'Transactions', icon: <ReceiptIcon />, path: '/transactions' },
     { text: 'Budget & Insights', icon: <PieChartIcon />, path: '/budget' },
+    { text: 'Recurring Bills', icon: <BillsIcon />, path: '/bills' },
+    { text: 'Investments', icon: <InvestmentsIcon />, path: '/investments' },
+    { text: 'Goals', icon: <GoalsIcon />, path: '/goals' },
     { text: 'AI Coach', icon: <PsychologyIcon />, path: '/coach' },
     { text: 'Reports', icon: <ReportIcon />, path: '/reports' },
     { text: 'Settings', icon: <SettingsIcon />, path: '/settings' },

@@ -7,6 +7,10 @@ import mongoose from 'mongoose';
 import authRoutes from './routes/auth.js';
 import transactionRoutes from './routes/transactions.js';
 import reportsRoutes from './routes/reports.js';
+import budgetRoutes from './routes/budgets.js';
+import billRoutes from './routes/bills.js';
+import investmentRoutes from './routes/investments.js';
+import goalRoutes from './routes/goals.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -43,6 +47,10 @@ connectDB();
 app.use('/api/auth', authRoutes);
 app.use('/api/transactions', transactionRoutes);
 app.use('/api/reports', reportsRoutes);
+app.use('/api/budgets', budgetRoutes);
+app.use('/api/bills', billRoutes);
+app.use('/api/investments', investmentRoutes);
+app.use('/api/goals', goalRoutes);
 
 app.get('/', (req, res) => {
     res.send('Smart Finance Coach API is running (MongoDB)');
